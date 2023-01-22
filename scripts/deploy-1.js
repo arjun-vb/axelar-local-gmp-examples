@@ -8,7 +8,7 @@ const {
 const { Wallet, getDefaultProvider, utils, ContractFactory } = require('ethers');
 const { FormatTypes } = require('ethers/lib/utils');
 
-async function deploy(env, chains, wallet, example, deployChainName) {
+async function deploy(env, chains, wallet, example, deployChainName, contractName) {
 
     if (example.preDeploy) {
 			await example.preDeploy(chains, wallet);
@@ -40,20 +40,28 @@ async function deploy(env, chains, wallet, example, deployChainName) {
 
     for(const chain of chains) {
       if(chain.name == deployChainName) {
-				for(const key of Object.keys(chain)) {
+            for(const key of Object.keys(chain)) {
 
-					if(chain[key].interface) {
-						const contract = chain[key];
-						const abi = contract.interface.format(FormatTypes.full);
-						chain[key] = {
-							abi,
-							address: contract.address,
-						}
-					}
-				}
-			}
+                if(chain[key].interface) {
+                    const contract = chain[key];
+                    const abi = contract.interface.format(FormatTypes.full);
 
-      // delete chain.wallet
+                    const cont = {
+                        name: contractName,
+                        abi,
+                        address: contract.address,
+                    }
+                    chain[key] = cont;
+                    if(chain["contracts"]) {
+                        chain["contracts"].push(cont);
+                    } else {
+                        chain["contracts"] = [];
+                        chain["contracts"].push(cont);
+                    }
+                }
+            }
+        }
+       // delete chain.wallet
     }
 
     setJSON(chains, `./info/${env}.json`);
@@ -86,5 +94,5 @@ if (require.main === module) {
     const privateKey = process.env.EVM_PRIVATE_KEY;
     const wallet = new Wallet(privateKey);
 
-    deploy(env, chains, wallet, example, process.argv[4]);
+    deploy(env, chains, wallet, example, process.argv[4], process.argv[2]);
 }

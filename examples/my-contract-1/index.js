@@ -56,3 +56,9 @@ module.exports = {
     deploy,
     test,
 };
+
+// node scripts/deploy-1 examples/my-contract-1 local Ethereum
+
+// node scripts/deploy-1 examples/my-contract-2 local Avalanche
+
+// node scripts/test examples/my-contract-1 local "Ethereum" "Avalanche" 'Hello World 123'
