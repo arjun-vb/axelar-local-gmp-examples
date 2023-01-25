@@ -5,14 +5,11 @@ pragma solidity 0.8.9;
 contract Coordinator { 
 
     enum State{ PUBHLISHED, REDEEM, REFUND }
-    address const participants;
+    address[2] users;
+    address[2] participants;
     bool verified = false;
 
     State currState = State.PUBHLISHED;
-
-
-    constructor() {
-    }
 
     function recieveFunds() public payable {
         total_funds += msg.value;
