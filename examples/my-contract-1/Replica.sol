@@ -4,8 +4,8 @@ pragma solidity 0.8.9;
 
 contract Replica { 
 
-    enum CoordinatorState{ PUBHLISHED, REDEEM, REFUND }
-    enum MyState{ INITIAL, REDEEMED, REFUNDED }
+    enum CoordinatorState { PUBHLISHED, REDEEM, REFUND }
+    enum MyState { INITIAL, REDEEMED, REFUNDED }
     address payable owner;
     uint public total_funds;
     bool public funded;
@@ -19,16 +19,22 @@ contract Replica {
         owner = payable(msg.sender);
     }
 
+    function register() public {
+        funded = false;
+        //register address with coordinator
+    }
+
     function recieveFunds() public payable {
         total_funds += msg.value;
         if(total_funds >= minFunds) {
             funded = true;
+            //send fund confirmation
         }
     }
 
     function redeem() public {
-        CoordinatorState status = CoordinatorState.PUBHLISHED; //check coordinator status 
-        if(status == CoordinatorState.REDEEM) {
+        CoordinatorState coordinatorState = CoordinatorState.PUBHLISHED; //check coordinator status 
+        if(coordinatorState == CoordinatorState.REDEEM) {
             (bool sent, ) = payable(recieverAddress).call{value: minFunds}("");
             require(sent, "Failure!");
             state = MyState.REDEEMED;
@@ -36,8 +42,8 @@ contract Replica {
     }
 
     function refund() public {
-        CoordinatorState status = CoordinatorState.PUBHLISHED; //check coordinator status 
-        if(status == CoordinatorState.REFUND) {
+        CoordinatorState coordinatorState = CoordinatorState.PUBHLISHED; //check coordinator status 
+        if(coordinatorState == CoordinatorState.REFUND) {
             (bool sent, ) = owner.call{value: address(this).balance}("");
             require(sent, "Failure!");
             state = MyState.REFUNDED;
