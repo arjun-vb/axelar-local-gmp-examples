@@ -24,6 +24,11 @@ contract Replica {
         //register address with coordinator
     }
 
+    function sendConfirmation() public pure returns(bool){
+        return true;
+        //send confirmation to coordinator
+    }
+
     function recieveFunds() public payable {
         total_funds += msg.value;
         if(total_funds >= minFunds) {
@@ -34,18 +39,20 @@ contract Replica {
 
     function redeem() public {
         CoordinatorState coordinatorState = CoordinatorState.PUBHLISHED; //check coordinator status 
-        if(coordinatorState == CoordinatorState.REDEEM) {
-            (bool sent, ) = payable(recieverAddress).call{value: minFunds}("");
-            require(sent, "Failure!");
+        if(coordinatorState == CoordinatorState.REDEEM && address(this).balance >= minFunds && state == MyState.INITIAL) {
+            payable(recieverAddress).transfer(minFunds);
+            //(bool sent, ) = payable(recieverAddress).call{value: minFunds}("");
+            //require(sent, "Failure!");
             state = MyState.REDEEMED;
         }
     }
 
     function refund() public {
         CoordinatorState coordinatorState = CoordinatorState.PUBHLISHED; //check coordinator status 
-        if(coordinatorState == CoordinatorState.REFUND) {
-            (bool sent, ) = owner.call{value: address(this).balance}("");
-            require(sent, "Failure!");
+        if(coordinatorState == CoordinatorState.REFUND && state == MyState.INITIAL) {
+            payable(owner).transfer(address(this).balance);
+            //(bool sent, ) = owner.call{value: address(this).balance}("");
+            //require(sent, "Failure!");
             state = MyState.REFUNDED;
         }
     }
