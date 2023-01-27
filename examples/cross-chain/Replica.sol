@@ -5,7 +5,6 @@ pragma solidity 0.8.9;
 import { AxelarExecutable } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/executables/AxelarExecutable.sol';
 import { IAxelarGateway } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGateway.sol';
 import { IAxelarGasService } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol';
-import { IERC20 } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IERC20.sol';
 
 contract Replica is AxelarExecutable { 
     IAxelarGasService public immutable gasReceiver;
@@ -21,7 +20,7 @@ contract Replica is AxelarExecutable {
     uint public immutable fundsToTransfer;
     string public coordinatorAddress;
     string public coordinatorChain;
-    string public recieverAddress;
+    address public immutable recieverAddress;
     
 
     constructor(
@@ -29,7 +28,7 @@ contract Replica is AxelarExecutable {
         address gasReceiver_, 
         string memory coordinatorAddress_,
         string memory coordinatorChain_,
-        string memory recieverAddress_,
+        address recieverAddress_,
         uint fundsToTransfer_
     ) AxelarExecutable(gateway_) {
         gasReceiver = IAxelarGasService(gasReceiver_);
@@ -40,15 +39,8 @@ contract Replica is AxelarExecutable {
         owner = payable(msg.sender);
     }
 
-    function register() external {
-        sendCoordinator("REGISTER");
-    }
-
-    function sendConfirmation() external {
-        sendCoordinator("CONFIRM");
-    }
-
     function sendCoordinator ( string memory message_ ) public payable {
+        //require owner
         bytes memory payload = abi.encode(message_);
         if (msg.value > 0) {
             gasReceiver.payNativeGasForContractCall{ value: msg.value }(
@@ -62,49 +54,28 @@ contract Replica is AxelarExecutable {
         gateway.callContract(coordinatorChain, coordinatorAddress, payload);
     }
 
-    function recieveFunds() public payable {
+    function recieveFunds() external payable {
         total_funds += msg.value;
-        if(total_funds >= fundsToTransfer) {
+        if(address(this).balance >= fundsToTransfer) {
             funded = true;
-            //send fund confirmation
+            sendCoordinator("FUNDED");
         }
     }
 
-    function redeem() public {
+    function redeem() external {
         CoordinatorState coordinatorState = CoordinatorState.PUBHLISHED; //check coordinator status 
-        if(coordinatorState == CoordinatorState.REDEEM && address(this).balance >= fundsToTransfer && state == MyState.INITIAL) {
-            //payable(recieverAddress).transfer(fundsToTransfer);
-            //(bool sent, ) = payable(recieverAddress).call{value: fundsToTransfer}("");
-            //require(sent, "Failure!");
+        if(coordinatorState == CoordinatorState.REDEEM && state == MyState.INITIAL) {
+            payable(recieverAddress).transfer(address(this).balance);
             state = MyState.REDEEMED;
         }
     }
 
-    function refund() public {
+    function refund() external {
         CoordinatorState coordinatorState = CoordinatorState.PUBHLISHED; //check coordinator status 
         if(coordinatorState == CoordinatorState.REFUND && state == MyState.INITIAL) {
             payable(owner).transfer(address(this).balance);
-            //(bool sent, ) = owner.call{value: address(this).balance}("");
-            //require(sent, "Failure!");
             state = MyState.REFUNDED;
         }
     }
-
-    // function bytesToAddress (bytes memory b) internal returns (address) {
-    //     uint result = 0;
-    //     for (uint i = 0; i < b.length; i++) {
-    //         uint c = uint(b[i]);
-    //         if (c >= 48 && c <= 57) {
-    //             result = result * 16 + (c - 48);
-    //         }
-    //         if(c >= 65 && c<= 90) {
-    //             result = result * 16 + (c - 55);
-    //         }
-    //         if(c >= 97 && c<= 122) {
-    //             result = result * 16 + (c - 87);
-    //         }
-    //     }
-    //     return address(result);
-    // }
 
 }
