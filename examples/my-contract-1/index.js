@@ -57,6 +57,8 @@ module.exports = {
     test,
 };
 
+// node scripts/createLocal
+
 // node scripts/deploy-1 examples/my-contract-1 local Ethereum
 
 // node scripts/deploy-1 examples/my-contract-2 local Avalanche

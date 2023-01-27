@@ -10,23 +10,23 @@ const {
 } = require('@axelar-network/axelar-local-dev');
 
 const { sleep } = require('../../utils');
-const ExecutableSample = require('../../artifacts/examples/call-contract/ExecutableSample.sol/ExecutableSample.json');
+const ExecutableSample = require('../../artifacts/examples/cross-chain/Replica.sol/Replica.json');
 
 async function deploy(chain, wallet) {
-    console.log(`Deploying ExecutableSample for ${chain.name}.`);
+    console.log(`Deploying Replica for ${chain.name}.`);
     const provider = getDefaultProvider(chain.rpc);
     chain.wallet = wallet.connect(provider);
     chain.contract = await deployContract(wallet, ExecutableSample, [chain.gateway, chain.gasReceiver]);
-    console.log(`Deployed ExecutableSample for ${chain.name} at ${chain.contract.address}.`);
+    console.log(`Deployed Replica for ${chain.name} at ${chain.contract.address}.`);
 }
 
 async function test(chains, wallet, options) {
     const args = options.args || [];
     const getGasPrice = options.getGasPrice;
 
-    const source = chains.find((chain) => chain.name === (args[0] || 'Avalanche'));
-    const destination = chains.find((chain) => chain.name === (args[1] || 'Fantom'));
-    const message = args[2] || `Hello ${destination.name} from ${source.name}, it is ${new Date().toLocaleTimeString()}.`;
+    const source = chains.find((chain) => chain.name === args[0]);
+    const destination = chains.find((chain) => chain.name === args[1]);
+    //const message = args[2] || `Hello ${destination.name} from ${source.name}, it is ${new Date().toLocaleTimeString()}.`;
 
     async function logValue() {
         console.log(`value at ${destination.name} is "${await destination.contract.value()}"`);
@@ -39,12 +39,12 @@ async function test(chains, wallet, options) {
     const gasLimit = 3e5;
     const gasPrice = await getGasPrice(source, destination, AddressZero);
 
-    const tx = await source.contract.setRemoteValue(destination.name, destination.contract.address, message, {
+    const tx = await source.contract.register(destination.name, destination.contract.address, {
         value: BigInt(Math.floor(gasLimit * gasPrice)),
     });
     await tx.wait();
 
-    while ((await destination.contract.value()) !== message) {
+    while ((await destination.contract.value()) !== "REGISTER") {
         await sleep(1000);
     }
 
@@ -56,3 +56,9 @@ module.exports = {
     deploy,
     test,
 };
+
+// node scripts/deploy-1 examples/my-contract-1 local Ethereum
+
+// node scripts/deploy-1 examples/my-contract-2 local Avalanche
+
+// node scripts/test examples/my-contract-1 local "Ethereum" "Avalanche" 'Hello World 123'
