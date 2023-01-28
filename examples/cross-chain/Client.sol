@@ -6,7 +6,7 @@ import { AxelarExecutable } from '@axelar-network/axelar-gmp-sdk-solidity/contra
 import { IAxelarGateway } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGateway.sol';
 import { IAxelarGasService } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol';
 
-contract Replica is AxelarExecutable { 
+contract Client is AxelarExecutable { 
     IAxelarGasService public immutable gasReceiver;
 
     enum CoordinatorState { PUBHLISHED, REDEEM, REFUND }
@@ -54,6 +54,23 @@ contract Replica is AxelarExecutable {
         gateway.callContract(coordinatorChain, coordinatorAddress, payload);
     }
 
+    function _execute(
+        string calldata sourceChain_,
+        string calldata sourceAddress_,
+        bytes calldata payload_
+    ) internal override {
+        string memory message;
+        if(stringEquals(sourceAddress_, coordinatorAddress) &&
+            stringEquals(sourceChain_, coordinatorChain)) {
+            (message) = abi.decode(payload_, (string));
+            if(stringEquals(message, "REDEEM")) {
+                redeem();
+            } else if(stringEquals(message, "REFUND")) {
+                refund();
+            } 
+        }
+    }
+
     function recieveFunds() external payable {
         total_funds += msg.value;
         if(address(this).balance >= fundsToTransfer) {
@@ -62,20 +79,25 @@ contract Replica is AxelarExecutable {
         }
     }
 
-    function redeem() external {
-        CoordinatorState coordinatorState = CoordinatorState.PUBHLISHED; //check coordinator status 
-        if(coordinatorState == CoordinatorState.REDEEM && state == MyState.INITIAL) {
+    function redeem() private {
+        if(state == MyState.INITIAL) {
             payable(recieverAddress).transfer(address(this).balance);
             state = MyState.REDEEMED;
         }
     }
 
-    function refund() external {
-        CoordinatorState coordinatorState = CoordinatorState.PUBHLISHED; //check coordinator status 
-        if(coordinatorState == CoordinatorState.REFUND && state == MyState.INITIAL) {
+    function refund() private {
+        if(state == MyState.INITIAL) {
             payable(owner).transfer(address(this).balance);
             state = MyState.REFUNDED;
         }
+    }
+
+    function stringEquals(string memory first, string memory second) internal pure returns(bool) {
+        if(keccak256(abi.encodePacked(first)) == keccak256(abi.encodePacked(second))) {
+            return true;
+        }
+        return false;
     }
 
 }

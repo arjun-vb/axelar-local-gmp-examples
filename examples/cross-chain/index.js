@@ -10,14 +10,14 @@ const {
 } = require('@axelar-network/axelar-local-dev');
 
 const { sleep } = require('../../utils');
-const ExecutableSample = require('../../artifacts/examples/cross-chain/Replica.sol/Replica.json');
+const ExecutableSample = require('../../artifacts/examples/cross-chain/Client.sol/Client.json');
 
 async function deploy(chain, wallet) {
-    console.log(`Deploying Replica for ${chain.name}.`);
+    console.log(`Deploying Client for ${chain.name}.`);
     const provider = getDefaultProvider(chain.rpc);
     chain.wallet = wallet.connect(provider);
     chain.contract = await deployContract(wallet, ExecutableSample, [chain.gateway, chain.gasReceiver]);
-    console.log(`Deployed Replica for ${chain.name} at ${chain.contract.address}.`);
+    console.log(`Deployed Client for ${chain.name} at ${chain.contract.address}.`);
 }
 
 async function test(chains, wallet, options) {

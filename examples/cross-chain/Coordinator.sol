@@ -19,7 +19,6 @@ contract Coordinator is AxelarExecutable {
 
     State currState = State.PUBHLISHED;
     bool verified = false;
-    string public message;
 
     IAxelarGasService public immutable gasReceiver;
 
@@ -37,14 +36,48 @@ contract Coordinator is AxelarExecutable {
         string calldata sourceAddress_,
         bytes calldata payload_
     ) internal override {
+        string memory message;
         (message) = abi.decode(payload_, (string));
         if(stringEquals(message, "REGISTER")) {
             registerParticipant(sourceAddress_, sourceChain_);
-        } else if(stringEquals(message, "CONFIRM")) {
-            registerConfirmation(sourceAddress_);
+        } else if(stringEquals(message, "CONFIRM")) { //address and chain must be participants
+            registerConfirmation(sourceAddress_, sourceChain_);
         } else if(stringEquals(message, "FUNDED")) {
-            registerFunds(sourceAddress_);
+            registerFunds(sourceAddress_, sourceChain_);
+        } else if(stringEquals(message, "REDEEM")) {
+            redeem();
+        } else if(stringEquals(message, "REFUND")) {
+            refund();
         }
+    }
+
+    function sendCurrentStateToClient(
+        string calldata destinationChain,
+        string calldata destinationAddress
+    ) external payable {
+        bytes memory payload = abi.encode(getCurrStateString(currState));
+        if (msg.value > 0) {
+            gasReceiver.payNativeGasForContractCall{ value: msg.value }(
+                address(this),
+                destinationChain,
+                destinationAddress,
+                payload,
+                msg.sender
+            );
+        }
+        gateway.callContract(destinationChain, destinationAddress, payload);
+    }
+
+    function getCurrStateString(State state) internal pure returns(string memory) {
+        string memory message;
+        if(state == State.PUBHLISHED) {
+            message = "PUBHLISHED";
+        } else if(state == State.REDEEM) {
+            message = "REDEEM";
+        } else if(state == State.REFUND) {
+            message = "REFUND";
+        }
+        return message;
     }
 
     function registerParticipant(string memory sourceAddress_, string memory sourceChain_) private {
@@ -55,18 +88,20 @@ contract Coordinator is AxelarExecutable {
         }
     }
 
-    function registerConfirmation(string memory sourceAddress_) private {
+    function registerConfirmation(string memory sourceAddress_, string memory sourceChain_) private {
         for(uint i = 0; i < participantCount; i++) {
-            if(stringEquals(participantAddress[i], sourceAddress_)) {
+            if(stringEquals(participantAddress[i], sourceAddress_) && 
+                stringEquals(participantChain[i], sourceChain_)) {
                 confirmation[sourceAddress_] = true;
                 break;
             }
         }
     }
 
-    function registerFunds(string memory sourceAddress_) private {
+    function registerFunds(string memory sourceAddress_, string memory sourceChain_) private {
         for(uint i = 0; i < participantCount; i++) {
-            if(stringEquals(participantAddress[i], sourceAddress_)) {
+            if(stringEquals(participantAddress[i], sourceAddress_) && 
+                stringEquals(participantChain[i], sourceChain_)) {
                 funded[sourceAddress_] = true;
                 break;
             }
@@ -82,17 +117,15 @@ contract Coordinator is AxelarExecutable {
         return true;
     }
 
-    function redeem() external {
+    function redeem() private {
         if(currState == State.PUBHLISHED && registeredCount == participantCount && verifyAll()) {
             currState = State.REDEEM;
-            //send redeem to participants
         }
     }
 
-    function refund() external {
+    function refund() private {
         if(currState == State.PUBHLISHED) {
             currState = State.REFUND;
-            //send refund to participants
         }
     }
 
