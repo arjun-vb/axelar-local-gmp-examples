@@ -20,7 +20,8 @@ async function createLocal(toFund = []) {
 
     await createAndExport({
         chainOutputPath: './info/local.json',
-        chains: ["Ethereum", "Avalanche"],
+        chains: ["Ethereum", "Avalanche", "Polygon"],
+        //chains: ["Ethereum", "Avalanche", "Moonbeam", "Fantom", "Polygon"],
         accountsToFund: toFund,
         callback,
     });

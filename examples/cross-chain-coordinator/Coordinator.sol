@@ -18,7 +18,6 @@ contract Coordinator is AxelarExecutable {
     mapping(string => bool) public funded;
 
     State currState = State.PUBHLISHED;
-    bool verified = false;
 
     IAxelarGasService public immutable gasReceiver;
 
@@ -66,18 +65,6 @@ contract Coordinator is AxelarExecutable {
             );
         }
         gateway.callContract(destinationChain, destinationAddress, payload);
-    }
-
-    function getCurrStateString(State state) internal pure returns(string memory) {
-        string memory message;
-        if(state == State.PUBHLISHED) {
-            message = "PUBHLISHED";
-        } else if(state == State.REDEEM) {
-            message = "REDEEM";
-        } else if(state == State.REFUND) {
-            message = "REFUND";
-        }
-        return message;
     }
 
     function registerParticipant(string memory sourceAddress_, string memory sourceChain_) private {
@@ -136,4 +123,15 @@ contract Coordinator is AxelarExecutable {
         return false;
     }
 
+    function getCurrStateString(State state) internal pure returns(string memory) {
+        string memory message;
+        if(state == State.PUBHLISHED) {
+            message = "PUBHLISHED";
+        } else if(state == State.REDEEM) {
+            message = "REDEEM";
+        } else if(state == State.REFUND) {
+            message = "REFUND";
+        }
+        return message;
+    }
 }
