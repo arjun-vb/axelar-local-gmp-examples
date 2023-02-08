@@ -30,26 +30,40 @@ async function test(chains, wallet, options) {
 
     async function logValue() {
         console.log(`value at ${destination.name} is "${await destination.contract.value()}"`);
+        console.log(`src addr"${await destination.contract.addr()}"`);
+        const count = await destination.contract.registeredCount();
+        console.log(`registeredCount is ${count}`);
+        if(count > 0) {
+            const index = await destination.contract.participantAddress(0);
+            console.log(`participantChain is ${await destination.contract.participantChain(0)}`);
+            console.log(`participantAddress is ${index}`);
+            console.log(`ConfirmationStatus is ${await destination.contract.confirmation(index)}`);
+        }
     }
 
-    console.log('--- Initially ---');
-    await logValue();
+    if(message == "P") {
+        await logValue();
+    } else {
 
-    // Set the gasLimit to 3e5 (a safe overestimate) and get the gas price.
-    const gasLimit = 3e5;
-    const gasPrice = await getGasPrice(source, destination, AddressZero);
+        console.log('--- Initially ---');
+        await logValue();
 
-    const tx = await source.contract.setRemoteValue(destination.name, destination.contract.address, message, {
-        value: BigInt(Math.floor(gasLimit * gasPrice)),
-    });
-    await tx.wait();
+        // Set the gasLimit to 3e5 (a safe overestimate) and get the gas price.
+        const gasLimit = 3e5;
+        const gasPrice = await getGasPrice(source, destination, AddressZero);
 
-    while ((await destination.contract.value()) !== message) {
-        await sleep(1000);
+        const tx = await source.contract.setRemoteValue(destination.name, destination.contract.address, message, {
+            value: BigInt(Math.floor(gasLimit * gasPrice)),
+        });
+        await tx.wait();
+
+        while ((await destination.contract.value()) !== message) {
+            await sleep(1000);
+        }
+
+        console.log('--- After ---');
+        await logValue();
     }
-
-    console.log('--- After ---');
-    await logValue();
 }
 
 module.exports = {
@@ -59,8 +73,8 @@ module.exports = {
 
 // node scripts/createLocal
 
-// node scripts/deploy-1 examples/my-contract-1 local Ethereum
+// node scripts/deploy examples/my-contract-1 local Ethereum
 
-// node scripts/deploy-1 examples/my-contract-2 local Avalanche
+// node scripts/deploy examples/my-contract-2 local Avalanche
 
 // node scripts/test examples/my-contract-1 local "Ethereum" "Avalanche" 'Hello World 123'
