@@ -12,12 +12,14 @@ const {
 const { sleep } = require('../../utils');
 const ExecutableSample = require('../../artifacts/examples/cross-chain-client/Client.sol/Client.json');
 
-async function deploy(chain, wallet) {
+async function deploy(chain, wallet, chains) {
     console.log(`Deploying Client for ${chain.name}.`);
     const provider = getDefaultProvider(chain.rpc);
     chain.wallet = wallet.connect(provider);
-    chain.contract = await deployContract(wallet, ExecutableSample, [chain.gateway, chain.gasReceiver]);
+    const destination = chains.find((chain) => chain.name === "Avalanche");
+    chain.contract = await deployContract(wallet, ExecutableSample, [chain.gateway, chain.gasReceiver, destination.contract.address, destination.name, "0x0411FC186c261bc75Cad577f1756871E3d50E899", 2]);
     console.log(`Deployed Client for ${chain.name} at ${chain.contract.address}.`);
+
 }
 
 async function test(chains, wallet, options) {
@@ -39,7 +41,7 @@ async function test(chains, wallet, options) {
     const gasLimit = 3e5;
     const gasPrice = await getGasPrice(source, destination, AddressZero);
 
-    const tx = await source.contract.register(destination.name, destination.contract.address, {
+    const tx = await source.contract.sendCoordinator("REGISTER", {
         value: BigInt(Math.floor(gasLimit * gasPrice)),
     });
     await tx.wait();

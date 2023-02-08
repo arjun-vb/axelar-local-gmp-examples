@@ -13,9 +13,11 @@ contract Coordinator is AxelarExecutable {
     uint public immutable participantCount;
     string[] public participantAddress;
     string[] public participantChain;
-    uint public registeredCount;
+    uint public registeredCount = 0;
     mapping(string => bool) public confirmation;
     mapping(string => bool) public funded;
+    string public value;
+    //string public string_equalCheck;
 
     State currState = State.PUBHLISHED;
 
@@ -35,17 +37,17 @@ contract Coordinator is AxelarExecutable {
         string calldata sourceAddress_,
         bytes calldata payload_
     ) internal override {
-        string memory message;
-        (message) = abi.decode(payload_, (string));
-        if(stringEquals(message, "REGISTER")) {
+        //string memory message;
+        (value) = abi.decode(payload_, (string));
+        if(stringEquals(value, "REGISTER")) {
             registerParticipant(sourceAddress_, sourceChain_);
-        } else if(stringEquals(message, "CONFIRM")) { //address and chain must be participants
+        } else if(stringEquals(value, "CONFIRM")) { //address and chain must be participants
             registerConfirmation(sourceAddress_, sourceChain_);
-        } else if(stringEquals(message, "FUNDED")) {
+        } else if(stringEquals(value, "FUNDED")) {
             registerFunds(sourceAddress_, sourceChain_);
-        } else if(stringEquals(message, "REDEEM")) {
+        } else if(stringEquals(value, "REDEEM")) {
             redeem();
-        } else if(stringEquals(message, "REFUND")) {
+        } else if(stringEquals(value, "REFUND")) {
             refund();
         }
     }
@@ -68,7 +70,7 @@ contract Coordinator is AxelarExecutable {
     }
 
     function registerParticipant(string memory sourceAddress_, string memory sourceChain_) private {
-        if(participantAddress.length < participantCount) {
+        if(registeredCount < participantCount) {
             participantAddress.push(sourceAddress_);
             participantChain.push(sourceChain_);
             registeredCount++;
@@ -116,7 +118,7 @@ contract Coordinator is AxelarExecutable {
         }
     }
 
-    function stringEquals(string memory first, string memory second) internal pure returns(bool) {
+    function stringEquals(string memory first, string memory second) internal returns(bool) {
         if(keccak256(abi.encodePacked(first)) == keccak256(abi.encodePacked(second))) {
             return true;
         }

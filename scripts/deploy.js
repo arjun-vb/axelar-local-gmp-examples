@@ -20,7 +20,7 @@ async function deploy(env, chains, wallet, example, deployChainName, contractNam
 			if(chain.name == deployChainName) {
 				const rpc = chain.rpc;
 				const provider = getDefaultProvider(rpc);
-				promises.push(example.deploy(chain, wallet.connect(provider)));
+				promises.push(example.deploy(chain, wallet.connect(provider), chains));
 			}
     }
 
@@ -31,7 +31,7 @@ async function deploy(env, chains, wallet, example, deployChainName, contractNam
 				if(chain.name == deployChainName) {
 					const rpc = chain.rpc;
 					const provider = getDefaultProvider(rpc);
-					promises.push(example.postDeploy(chain, chains, wallet.connect(provider)));
+					promises.push(example.postDeploy(chain, wallet.connect(provider)));
 				}
 			}
 

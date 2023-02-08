@@ -40,7 +40,7 @@ async function test(chains, wallet, options) {
     const gasLimit = 3e5;
     const gasPrice = await getGasPrice(source, destination, AddressZero);
 
-    const tx = await source.contract.register(destination.name, destination.contract.address, {
+    const tx = await source.contract.sendCoordinator("REGISTER", {
         value: BigInt(Math.floor(gasLimit * gasPrice)),
     });
     await tx.wait();
@@ -63,3 +63,6 @@ module.exports = {
 // node scripts/deploy-1 examples/my-contract-2 local Avalanche
 
 // node scripts/test examples/my-contract-1 local "Ethereum" "Avalanche" 'Hello World 123'
+
+// node scripts/deploy examples/cross-chain-coordinator local Polygon 
+// node scripts/deploy examples/cross-chain-client local Avalanche && node scripts/deploy examples/cross-chain-client local Ethereum
