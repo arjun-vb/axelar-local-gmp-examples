@@ -74,6 +74,9 @@ contract Coordinator is AxelarExecutable {
             participantAddress.push(sourceAddress_);
             participantChain.push(sourceChain_);
             registeredCount++;
+            confirmation[string(string.concat(bytes(sourceAddress_), bytes(sourceChain_)))] == false;
+            funded[string(string.concat(bytes(sourceAddress_), bytes(sourceChain_)))] == false;
+
         }
     }
 
@@ -81,7 +84,7 @@ contract Coordinator is AxelarExecutable {
         for(uint i = 0; i < participantCount; i++) {
             if(stringEquals(participantAddress[i], sourceAddress_) && 
                 stringEquals(participantChain[i], sourceChain_)) {
-                confirmation[sourceAddress_] = true;
+                confirmation[string(string.concat(bytes(sourceAddress_), bytes(sourceChain_)))] = true;
                 break;
             }
         }
@@ -91,7 +94,7 @@ contract Coordinator is AxelarExecutable {
         for(uint i = 0; i < participantCount; i++) {
             if(stringEquals(participantAddress[i], sourceAddress_) && 
                 stringEquals(participantChain[i], sourceChain_)) {
-                funded[sourceAddress_] = true;
+                funded[string(string.concat(bytes(sourceAddress_), bytes(sourceChain_)))] = true;
                 break;
             }
         }
@@ -99,7 +102,8 @@ contract Coordinator is AxelarExecutable {
 
     function verifyAll() private view returns(bool) {
         for(uint i = 0; i < participantCount; i++) {
-            if(confirmation[participantAddress[i]] == false || funded[participantAddress[i]] == false) { //check exist condition
+            if(confirmation[string(string.concat(bytes(participantAddress[i]), bytes(participantChain[i])))] == false || 
+                    funded[string(string.concat(bytes(participantAddress[i]), bytes(participantChain[i])))] == false) { //check exist condition
                 return false;
             }
         }
@@ -118,7 +122,7 @@ contract Coordinator is AxelarExecutable {
         }
     }
 
-    function stringEquals(string memory first, string memory second) internal returns(bool) {
+    function stringEquals(string memory first, string memory second) internal pure returns(bool) {
         if(keccak256(abi.encodePacked(first)) == keccak256(abi.encodePacked(second))) {
             return true;
         }

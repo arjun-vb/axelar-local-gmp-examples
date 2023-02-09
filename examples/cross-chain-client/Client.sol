@@ -9,7 +9,6 @@ import { IAxelarGasService } from '@axelar-network/axelar-gmp-sdk-solidity/contr
 contract Client is AxelarExecutable { 
     IAxelarGasService public immutable gasReceiver;
 
-    enum CoordinatorState { PUBHLISHED, REDEEM, REFUND }
     enum MyState { INITIAL, REDEEMED, REFUNDED }
 
     address payable owner;
@@ -75,7 +74,7 @@ contract Client is AxelarExecutable {
         total_funds += msg.value;
         if(address(this).balance >= fundsToTransfer) {
             funded = true;
-            sendCoordinator("FUNDED");
+            //sendCoordinator("FUNDED");
         }
     }
 

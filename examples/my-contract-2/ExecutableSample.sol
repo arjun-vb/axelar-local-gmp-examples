@@ -64,7 +64,7 @@ contract ExecutableSample is AxelarExecutable {
         }
     }
 
-    function stringEquals(string memory first, string memory second) internal returns(bool) {
+    function stringEquals(string memory first, string memory second) internal pure returns(bool) {
         if(keccak256(abi.encodePacked(first)) == keccak256(abi.encodePacked(second))) {
             return true;
         }

@@ -65,4 +65,5 @@ module.exports = {
 // node scripts/test examples/my-contract-1 local "Ethereum" "Avalanche" 'Hello World 123'
 
 // node scripts/deploy examples/cross-chain-coordinator local Polygon 
+// node scripts/deploy examples/cross-chain-client local Avalanche 
 // node scripts/deploy examples/cross-chain-client local Avalanche && node scripts/deploy examples/cross-chain-client local Ethereum
