@@ -15,12 +15,14 @@ contract Client is AxelarExecutable {
     uint public total_funds = 0;
     bool public funded = false;
     MyState state = MyState.INITIAL;
+    string public stateStr = "INITIAL";
 
     uint public immutable fundsToTransfer;
     string public coordinatorAddress;
     string public coordinatorChain;
     address public immutable recieverAddress;
     
+    string public value;
 
     constructor(
         address gateway_, 
@@ -58,19 +60,18 @@ contract Client is AxelarExecutable {
         string calldata sourceAddress_,
         bytes calldata payload_
     ) internal override {
-        string memory message;
         if(stringEquals(sourceAddress_, coordinatorAddress) &&
             stringEquals(sourceChain_, coordinatorChain)) {
-            (message) = abi.decode(payload_, (string));
-            if(stringEquals(message, "REDEEM")) {
+            (value) = abi.decode(payload_, (string));
+            if(stringEquals(value, "REDEEM")) {
                 redeem();
-            } else if(stringEquals(message, "REFUND")) {
+            } else if(stringEquals(value, "REFUND")) {
                 refund();
             } 
         }
     }
 
-    function recieveFunds() external payable {
+    receive() external payable {
         total_funds += msg.value;
         if(address(this).balance >= fundsToTransfer) {
             funded = true;
@@ -82,6 +83,7 @@ contract Client is AxelarExecutable {
         if(state == MyState.INITIAL) {
             payable(recieverAddress).transfer(address(this).balance);
             state = MyState.REDEEMED;
+            stateStr = "REDEEMED";
         }
     }
 
@@ -89,6 +91,7 @@ contract Client is AxelarExecutable {
         if(state == MyState.INITIAL) {
             payable(owner).transfer(address(this).balance);
             state = MyState.REFUNDED;
+            stateStr = "REFUNDED";
         }
     }
 
@@ -99,4 +102,15 @@ contract Client is AxelarExecutable {
         return false;
     }
 
+    // function getCurrStateString(State state) internal pure returns(string memory) {
+    //     string memory message;
+    //     if(state == MyState.INITIAL) {
+    //         message = "INITIAL";
+    //     } else if(state == MyState.REDEEMED) {
+    //         message = "REDEEMED";
+    //     } else if(state == MyState.REFUNDED) {
+    //         message = "REFUNDED";
+    //     }
+    //     return message;
+    // }
 }

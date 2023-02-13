@@ -17,7 +17,6 @@ contract Coordinator is AxelarExecutable {
     mapping(string => bool) public confirmation;
     mapping(string => bool) public funded;
     string public value;
-    //string public string_equalCheck;
 
     State currState = State.PUBHLISHED;
 
