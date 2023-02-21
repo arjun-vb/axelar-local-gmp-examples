@@ -19,6 +19,7 @@ contract Coordinator is AxelarExecutable {
     string public value;
 
     State currState = State.PUBHLISHED;
+    string currStateStr = getCurrStateString(currState);
 
     IAxelarGasService public immutable gasReceiver;
 
@@ -112,12 +113,14 @@ contract Coordinator is AxelarExecutable {
     function redeem() private {
         if(currState == State.PUBHLISHED && registeredCount == participantCount && verifyAll()) {
             currState = State.REDEEM;
+            currStateStr = getCurrStateString(currState);
         }
     }
 
     function refund() private {
         if(currState == State.PUBHLISHED) {
             currState = State.REFUND;
+            currStateStr = getCurrStateString(currState);
         }
     }
 

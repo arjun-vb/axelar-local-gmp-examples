@@ -74,14 +74,16 @@ async function test(chains, wallet, options) {
         const gasLimit = 3e5;
         const gasPrice = await getGasPrice(source, destination, AddressZero);
 
+        //console.log('--- Initial ---');
+
         const tx = await destination.contract.sendCurrentStateToClient(source.name, source.contract.address, {
             value: BigInt(Math.floor(gasLimit * gasPrice)),
         });
         await tx.wait();
 
-        while ((await source.contract.value()) !== message) {
-            await sleep(1000);
-        }
+        // while ((await source.contract.value()) !== message) {
+        //     await sleep(1000);
+        // }
 
         console.log('--- After ---');
         await logValue();

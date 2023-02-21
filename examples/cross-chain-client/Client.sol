@@ -26,7 +26,7 @@ contract Client is AxelarExecutable {
 
     constructor(
         address gateway_, 
-        address gasReceiver_, 
+        address gasReceiver_,
         string memory coordinatorAddress_,
         string memory coordinatorChain_,
         address recieverAddress_,
@@ -40,8 +40,9 @@ contract Client is AxelarExecutable {
         owner = payable(msg.sender);
     }
 
+
     function sendCoordinator ( string memory message_ ) public payable {
-        //require owner
+        //require owner, limit messages
         bytes memory payload = abi.encode(message_);
         if (msg.value > 0) {
             gasReceiver.payNativeGasForContractCall{ value: msg.value }(
@@ -73,7 +74,7 @@ contract Client is AxelarExecutable {
 
     receive() external payable {
         total_funds += msg.value;
-        if(address(this).balance >= fundsToTransfer) {
+        if(total_funds >= fundsToTransfer) {
             funded = true;
             //sendCoordinator("FUNDED");
         }
